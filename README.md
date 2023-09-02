@@ -1,4 +1,4 @@
-#User Story
+# User Story
 - I want to be able to register a new employee so that they can be added to the database.
 - I want to be able to view the list of all employees to have an overview of who is part of the team.
 - I want to be able to edit the information of an existing employee to update data such as name, position, and contact information.
@@ -7,7 +7,7 @@
 - I want to be able to create an account in the system by providing my name, email address, and a secure password, so that I can access the application's features.
 - As a registered user, I want to be able to log in to my account with my email address and password to access the personalized features of the application.
 
-#Libraries
+# Libraries
 - Dapper
 - FluentValidation
 - Npgsql
@@ -15,7 +15,7 @@
 - FluentAssertions
 - Moq
 
-#Some cURLs
+# Some cURLs
 Login
 ```
 curl --location 'http://localhost:5001/api/login' \
