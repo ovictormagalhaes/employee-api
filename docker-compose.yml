@@ -1,0 +1,78 @@
+version: "3.4"
+
+services:
+  auth-app:
+    environment:
+      - ASPNETCORE_ENVIROMENT=dev
+      - TokenConfiguration__Secret=70d0adc9-e73e-42bd-a101-4420cd9c8237
+      - TokenConfiguration__Issuer=api-gateway
+      - TokenConfiguration__Audience=localhost
+      - TokenConfiguration__ExpirationMinutes=60
+      - DATABASE_CONNECTION=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=challenger
+    container_name: auth-app
+    image: auth-app
+    depends_on:
+      - postgres
+    ports:
+      - "5001:80"
+    build:
+      context: .
+      dockerfile: ./src/Auth.API/dockerfile
+
+  employee-app:
+    environment:
+      - DATABASE_CONNECTION=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=challenger
+    container_name: employee-app
+    image: employee-app
+    depends_on:
+      - postgres
+    ports:
+      - "5002:80"
+    build:
+      context: .
+      dockerfile: ./src/Employee.API/dockerfile
+
+  postgres:
+    image: postgres:10-alpine
+    restart: always
+    volumes:
+      - challenger-volume:/data/db
+      - ./src/Auth.API/Infrastructure/Migrations/database.sql:/docker-entrypoint-initdb.d/auth_database.sql
+      - ./src/Employee.API/Infrastructure/Migrations/database.sql:/docker-entrypoint-initdb.d/employee_database.sql
+    environment:
+      POSTGRES_DB: challenger
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - "5433:5432"
+    expose:
+      - 5432
+
+  auth-api-unit-tests:
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    stop_signal: SIGKILL
+    volumes:
+      - .:/src
+    working_dir: /src
+    command:
+      [
+        "dotnet",
+        "test",
+        "./test/Auth.API.UnitTests/Auth.API.UnitTests.csproj"
+      ]
+
+  employee-api-unit-tests:
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    stop_signal: SIGKILL
+    volumes:
+      - .:/src
+    working_dir: /src
+    command:
+      [
+        "dotnet",
+        "test",
+        "./test/Employee.API.UnitTests/Employee.API.UnitTests.csproj"
+      ]
+
+volumes:
+  challenger-volume:

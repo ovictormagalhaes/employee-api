@@ -1,0 +1,24 @@
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /app
+
+# Copie o arquivo csproj e restaura as dependências como uma camada separada
+COPY src/Employee.API/Employee.API.csproj ./Employee.API/
+RUN dotnet restore ./Employee.API/Employee.API.csproj
+
+# Copie todo o código-fonte da Employee.API
+COPY src/Employee.API/ ./Employee.API/
+WORKDIR /app/Employee.API
+
+# Copie todo o código-fonte e construa o aplicativo
+RUN dotnet publish -c Release -o out
+
+# Crie uma imagem menor com a aplicação publicada
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/Employee.API/out ./
+
+# Exponha a porta em que o aplicativo vai ouvir
+EXPOSE 80
+
+# Inicialize o aplicativo quando o contêiner for iniciado
+ENTRYPOINT ["dotnet", "Employee.API.dll"]

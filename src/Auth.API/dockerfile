@@ -1,0 +1,24 @@
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /app
+
+# Copie o arquivo csproj e restaura as dependências como uma camada separada
+COPY src/Auth.API/Auth.API.csproj ./Auth.API/
+RUN dotnet restore ./Auth.API/Auth.API.csproj
+
+# Copie todo o código-fonte da Auth.API
+COPY src/Auth.API/ ./Auth.API/
+WORKDIR /app/Auth.API
+
+# Copie todo o código-fonte e construa o aplicativo
+RUN dotnet publish -c Release -o out
+
+# Crie uma imagem menor com a aplicação publicada
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/Auth.API/out ./
+
+# Exponha a porta em que o aplicativo vai ouvir
+EXPOSE 80
+
+# Inicialize o aplicativo quando o contêiner for iniciado
+ENTRYPOINT ["dotnet", "Auth.API.dll"]
